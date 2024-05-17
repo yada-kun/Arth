@@ -11,8 +11,10 @@ use Laravel\Sanctum\PersonalAccessToken;
 class AuthService {
 
     // login() service
-    public function loginService(array $credentials, $tokenCookie = null): array{
+    public function loginService(array $credentials): array{
         // this is the $reuqest->cookie('refresh_token) we check if there is a cookie theb we remove it.
+
+
         if(Auth::attempt($credentials)){
             $user = Auth::user();
             $accessToken = $this->newToken($user, 'access_token');

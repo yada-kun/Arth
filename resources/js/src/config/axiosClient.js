@@ -1,8 +1,9 @@
 import axios from "axios";
 
-const axiosClient = new axios({
-    baseURL: "http://localhost/api",
+export const axiosClient = new axios.create({
+    baseURL: "http://localhost",
     withCredentials: true,
+    withXSRFToken: true,
 });
 
 let retryCount = 0;

@@ -1,17 +1,34 @@
 <script setup>
+import {  useRouter } from "vue-router";
 import { Form } from "vee-validate";
 import { object, string } from "yup";
+
+import { axiosClient } from "../config/axiosClient";
+
 import Input from "../components/forms/Input.vue";
 import ErrorMessage from "../components/forms/ErrorMessage.vue";
 import Button from "../components/forms/Button.vue";
+
+
+
+const router = useRouter();
 
 let userSchema = object({
     email: string().email().required(),
     password: string().required(),
 });
 
-function onSubmit(values) {
-    alert(values.password);
+async function onSubmit(values) {
+    try {
+        const { data } = await axiosClient.post('/api/login', values);
+
+        if(data){
+            router.push('/dashboard');
+        }
+    } catch (error) {
+
+    }
+
 }
 </script>
 
@@ -60,7 +77,7 @@ function onSubmit(values) {
                             <ErrorMessage name="password" />
                         </div>
                     </div>
-                    <Button type="submit" intent="primary" size="medium">
+                    <Button type="submit" intent="primary" size="medium" name="login-button">
                         Submit
                     </Button>
                 </div>

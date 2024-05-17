@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AuthLoginRequest;
 use App\Http\Resources\AuthResource;
 use App\Services\AuthService;
 use App\Traits\HttpResponses;
@@ -20,20 +21,28 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
-    public function login(Request $request){
+    public function login(AuthLoginRequest $request){
 
-      $credentials = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required|string',
-      ]);
+        // validate the incoming request data: email, password
+        $credentials = $request->validated();
 
-      $result = $this->authService->loginService($credentials);
+        // // check for refresh token in the cookie
+        // $refreshToken = $request->cookie('refresh_token');
 
-      if(isset($result['error'])){
-        return $this->error($result['error'], Response::HTTP_FORBIDDEN);
-      }
+        // if there is refresh token in the cookie, we remove the refresh token
+        // if($refreshToken){
+        //     unset($request->cookies['refresh_token']);
+        // }
 
-      return $this->success(AuthResource::make($result), "Login Successful", Response::HTTP_OK)->withCookie('refresh_token', $result['refresh_token'], 1440, '/', null, true, true);
+        // logic is in the services function
+        $result = $this->authService->loginService($credentials);
+
+        if(isset($result['error'])){
+            return $this->error($result['error'], Response::HTTP_FORBIDDEN);
+        }
+
+        // return response via HTTP response trait, with auth resource  and attach refresh token in the cookie
+        return $this->success(AuthResource::make($result), "Login Successful", Response::HTTP_OK)->withCookie('refresh_token', $result['refresh_token'], 1440, '/', null, true, true);
     }
 
     public function refresh(Request $request){
@@ -45,7 +54,7 @@ class AuthController extends Controller
         $result = $this->authService->refreshService($refreshToken, $accessToken);
 
         if (isset($result['error'])) {
-            return $this->error($result['error'], Response::HTTP_UNAUTHORIZED)->withCookie(cookie()->forget('refresh_token'));;
+            return $this->error($result['error'], Response::HTTP_UNAUTHORIZED)->withCookie(cookie()->forget('refresh_token'));
             }
 
     return $this->success(AuthResource::make($result), "Successful Request", Response::HTTP_OK)->withCookie($refreshToken);
